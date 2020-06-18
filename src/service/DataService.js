@@ -2,8 +2,9 @@ import { Toast } from 'native-base';
 import { db } from '../config/firebase';
 
 
+
 export const addJob = (jobname, uniqueId, jobdesc, worktype, salary, peoplenum, chosenDate, location) => {
-    db.ref('/Job').push({
+    db.ref('/Job').child(uniqueId).set({
 
         jobname: jobname,
         uniqueId: uniqueId,
@@ -19,6 +20,19 @@ export const addJob = (jobname, uniqueId, jobdesc, worktype, salary, peoplenum, 
 export const removeJob = (uniqueId) => {
     db.ref('/Job').child(uniqueId).remove();
 
+}
+
+export const addingJob = (jobname, uniqueId, jobdesc, worktype, salary, peoplenum, chosenDate, location) => {
+    firestore.collection('Job').set({
+        jobname: jobname,
+        uniqueId: uniqueId,
+        jobdesc: jobdesc,
+        worktype: worktype,
+        salary: salary,
+        peoplenum: peoplenum,
+        chosenDate: chosenDate,
+        location: location
+    })
 }
 
 // export const updateStudent =  (name, matricno, major, year, status) => {

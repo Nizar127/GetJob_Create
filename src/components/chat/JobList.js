@@ -38,12 +38,12 @@ export default class JobList extends Component {
     return (
       this.props.jobs.map((data, index) => {
         return (
-          <ListItem key={index}>
+          <ListItem key={index} onLongPress={(jobname) => { this.deleteConfirmation(jobname) }} onPress={() => this.onPress(data.jobname, data.uniqueId, data.jobdesc, data.worktype, data.salary, data.peoplenum, data.chosenDate, data.location)}>
             <Left>
               <Text>{data.jobname}</Text>
             </Left>
             <Right>
-              <Icon name="arrow-forward" onLongPress={(jobname) => { this.deleteConfirmation(jobname) }} onPress={() => this.onPress(data.jobname, data.uniqueId, data.jobdesc, data.worktype, data.salary, data.peoplenum, data.chosenDate, data.location)} />
+              <Icon name="arrow-forward" />
             </Right>
           </ListItem>
         )

@@ -42,26 +42,31 @@ export default class MyOrderDetail extends Component {
   componentDidMount() {
     //this._isMounted = true;
     //  if(this._isMounted){
-    let query = job.orderByValue();
+    let query = job.orderByChild("uniqueId").equalTo(uniqueId);
     query.on('value', (snapshot) => {
+      let key = snapshot.key;
       let data = snapshot.val();
       if (data) {
+        //let id = Object.keys(data)[0];
         let firebaseData = Object.values(data);
+        //key = Object.keys(data)[0];
         // if(this._isMounted){
-        this.setState({ jobs: firebaseData }, () => {
-          this.state.jobs.map((element) => {
-            this.setState({
-              jobname: element.jobname,
-              jobdesc: element.jobdesc,
-              uniqueId: element.uniqueId,
-              salary: element.salary,
-              peoplenum: element.peoplenum,
-              worktype: element.worktype,
-              chosenDate: element.chosenDate,
-              location: element.location,
+        if (key) {
+          this.setState({ jobs: firebaseData }, () => {
+            this.state.jobs.map((element) => {
+              this.setState({
+                jobname: element.jobname,
+                jobdesc: element.jobdesc,
+                uniqueId: element.uniqueId,
+                salary: element.salary,
+                peoplenum: element.peoplenum,
+                worktype: element.worktype,
+                chosenDate: element.chosenDate,
+                location: element.location,
+              });
             });
           });
-        });
+        }
         // }
 
       }

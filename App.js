@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { SafeAreaView, View, Text, Image } from 'react-native';
+import { Button } from 'native-base';
 import SplashScreen from 'react-native-splash-screen';
 import { createSwitchNavigator, createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
@@ -31,6 +32,8 @@ import JobSettings from './src/screen/job_post/JobSettings';
 import OnGoingJob from './src/screen/user_profile/OnGoingJob';
 import AvailabilityView from './src/screen/user_profile/availabilityView';
 import JobComplete from './src/screen/user_profile/jobComplete';
+import GoogleLogin from './src/screen/auth/googlelogin';
+import Loading from './src/loading';
 
 const DashboardTabNavigator = createBottomTabNavigator(
   {
@@ -44,7 +47,12 @@ const DashboardTabNavigator = createBottomTabNavigator(
     navigationOptions: ({ navigation }) => {
       const { routeName } = navigation.state.routes[navigation.state.index];
       return {
-        headerTitle: routeName
+        headerTitle: routeName,
+
+        // headerRight: () =>
+        //   <Button
+        //     title='Log Out'
+        //     onPress={() => this.signOut()} />
       };
     }
   }
@@ -69,7 +77,8 @@ const DashboardStackNavigator = createStackNavigator(
     JobComplete: JobComplete,
     OnGoingJob: OnGoingJob,
     AvailabilityView: AvailabilityView,
-    TaskList: TaskList
+    TaskList: TaskList,
+    GoogleLogin: GoogleLogin
   },
   {
     defaultNavigationOptions: ({ navigation }) => {
@@ -81,6 +90,8 @@ const DashboardStackNavigator = createStackNavigator(
             name="md-menu"
             size={30}
           />
+
+
 
       };
     }
@@ -131,6 +142,7 @@ const AppDrawerNavigator = createDrawerNavigator({
 const AppSwitchNavigator = createSwitchNavigator({
   //Login: { screen: Login},
   //Welcome: { screen: WelcomeScreen },
+  Loading: { screen: Loading },
   Dashboard: { screen: AppDrawerNavigator }
 });
 

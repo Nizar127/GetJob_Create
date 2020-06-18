@@ -21,15 +21,21 @@ import ignoreWarnings from 'react-native-ignore-warnings';
 ignoreWarnings('Setting a timer');
 
 export default class Login extends Component {
+  _isMounted = false;
   constructor(props){
     super(props);
-    this.state = { loading: true};
-     this.state = ({
+    //this.state = { loading: true};
+     this.state = {
        email: '',
-       password: ''
-   })
+       password: '',
+       errorMessage:'',
+   }
 
-   auth.onAuthStateChanged(function(user){
+  
+  
+
+  
+   auth.onAuthStateChanged((user) => {
       if(user){
         console.log("Logged in", user);
       }else{
@@ -39,6 +45,13 @@ export default class Login extends Component {
 
   }
 
+  componentDidMount() {
+    this._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
 
   async componentWillMount() {
     await Font.loadAsync({
@@ -69,9 +82,16 @@ loginUser = () => {
 
     try {
 
-        auth.signInWithEmailAndPassword(this.state.email, this.state.password).then(function (user) {
+        auth.
+        signInWithEmailAndPassword(this.state.email, this.state.password).
+        then(() => this.props.navigation.navigate('loading')).
+        catch(error => {
+          if(this._isMounted){
+            this.setState({errorMessage:error.message})
+          }
+        }) 
             
-        })
+        
         this.props.navigation.navigate('Dashboard');
 
     }
@@ -89,7 +109,7 @@ loginUser = () => {
               <Input
                   autoCorrect={false}
                   autoCapitalize="none"
-                  onChangeText={(email) => this.setState({ email: email })}
+                  onChangeText={email => this.setState({ email })}
               />
 
           </Item>
@@ -100,7 +120,7 @@ loginUser = () => {
                   secureTextEntry={true}
                   autoCorrect={false}
                   autoCapitalize="none"
-                  onChangeText={(password) => this.setState({ password:password })}
+                  onChangeText={password => this.setState({ password})}
               />
           </Item>
 

@@ -9,9 +9,10 @@ import {
     TextInput,
     FlatList,
     Modal,
-    View
+    View,
+    DatePicker
 } from 'react-native';
-import DatePicker from 'react-native-datepicker';
+//import DatePicker from 'react-native-datepicker';
 import { db } from '../../config/firebase';
 
 // const firebaseConfig = {

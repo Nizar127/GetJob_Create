@@ -18,8 +18,9 @@ import {
   Separator,
   Button
 } from 'native-base';
+import { signOut } from '../screen/auth/googlelogin'
 import { ScrollView } from 'react-native-gesture-handler';
-import SplashScreen from 'react-native-splash-screen';
+//import SplashScreen from 'react-native-splash-screen';
 
 
 export default class Hire extends Component {
@@ -31,18 +32,25 @@ export default class Hire extends Component {
     };
   }
 
-  componentDidMount() {
-    SplashScreen.hide();
-  }
+  // componentDidMount() {
+  //   SplashScreen.hide();
+  // }
 
   static navigationOptions = {
     title: 'Hire',
+    headerRight: (
+      <Button
+        title='Log Out'
+        onPress={() => this.signOut()} />
+
+    ),
     tabBarIcon: ({ tintColor }) => (
       <Icon name="md-briefcase" style={{ color: tintColor }} />
     ),
     headerTitle: {
       title: 'GET-THE-JOB'
     },
+
     headerStyle: {
       backgroundColor: '#f45fff',
     },
@@ -50,6 +58,9 @@ export default class Hire extends Component {
     headerTitleStyle: {
       fontWeight: 'bold',
     },
+
+
+
   }
 
   // hireWork = () => {

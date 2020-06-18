@@ -19,7 +19,7 @@ import {
     Separator,
     Button
 } from 'native-base';
-
+import { signOut } from '../screen/auth/googlelogin';
 
 
 export default class Profile extends Component {
@@ -39,6 +39,15 @@ export default class Profile extends Component {
         headerTitleStyle: {
             fontWeight: 'bold',
         },
+    }
+
+    logoff = () => {
+        if (signOut()) {
+            Alert.alert('Signing Out')
+            this.props.navigation.navigate('googlelogin');
+        } else {
+            console.log('Error signOut')
+        }
     }
 
     render() {
@@ -134,6 +143,11 @@ export default class Profile extends Component {
 
 
                         </CardItem>
+                    </Card>
+                    <Card>
+                        <Button block danger last style={{ marginTop: 20, marginBottom: 20 }} onPress={this.logoff}>
+                            <Text>Sign Out</Text>
+                        </Button>
                     </Card>
 
                 </ScrollView>
