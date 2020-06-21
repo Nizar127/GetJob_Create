@@ -4,7 +4,7 @@ import {
   Container,
   Header,
   Content,
-
+  Modal,
   Form,
   Item,
   Input,
@@ -59,8 +59,8 @@ export default class UploadJob extends Component {
       lat: 0,
       lng: 0,
       location: '',
-      isLoading: false
-
+      isLoading: false,
+      modalVisible: false
     };
     this.state = { chosenDate: new Date() };
     this.setDate = this.setDate.bind(this);
@@ -369,11 +369,11 @@ export default class UploadJob extends Component {
                   //   this.setLocation(data)
                   // )
                   console.log(data, details);
-                  this.setLocation(data);
+                  this.setLocation(data, details);
                   //console.log(data,details);
                 }}
                 query={{
-                  key: 'AIzaSyDLllM-_bxchMqm1dqUIhwE54Z99EgEdqw',
+                  key: 'AIzaSyCz2vqdCuzXmMZ10CT21J_xe0GrfLEqIGg',
                   language: 'en',
                   components: 'country: my'
                 }}
@@ -399,9 +399,9 @@ export default class UploadJob extends Component {
                 //   'locality',
                 //   'administrative_area_level_3'
                 // ]}
-                debounce={200}
-                currentLocationLabel='Current Location'
-                listViewDisplayed="false"
+                //debounce={200}
+                // fetchDetailscurrentLocationLabel='Current Location'
+                //listViewDisplayed="false"
                 styles={{
                   textInputContainer: {
                     width: '100%',
