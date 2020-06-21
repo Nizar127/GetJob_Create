@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert } from 'react-native';
+import { Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import {
   Container,
   Header,
@@ -20,17 +20,63 @@ import {
 } from 'native-base';
 import { signOut } from '../screen/auth/googlelogin'
 import { ScrollView } from 'react-native-gesture-handler';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 //import SplashScreen from 'react-native-splash-screen';
 
+//get user data
+const User = auth().currentUser;
 
 export default class Hire extends Component {
 
   constructor() {
     super();
+    //  this.applicationRef = firestore().collection('Job').doc(User).collection('Hire');
     this.state = {
+      hire: [],
+      isLoading: true,
       show: true,
+      username: null,
+      jobname: null,
+      jobposition: null,
+
     };
   }
+
+  // componentDidMount() {
+  //   this.unsubscribe = this.applicationRef.onSnapshot(this.getCollection);
+  // }
+
+
+  // componentWillUnmount() {
+  //   this.unsubscribe();
+  // }
+
+  // getCollection = (querySnapshot) => {
+  //   const hire = [];
+  //   querySnapshot.forEach((res) => {
+  //     const { jobname, uniqueId, jobdesc, worktype, salary, peoplenum, chosenDate, time, location } = res.data();
+  //     hire.push({
+  //       key: res.id,
+  //       res,
+  //       jobname,
+  //       uniqueId,
+  //       jobdesc,
+  //       worktype,
+  //       salary,
+  //       peoplenum,
+  //       chosenDate,
+  //       time,
+  //       location
+  //     });
+  //   });
+  //   this.setState({
+  //     jobs,
+  //     isLoading: false
+  //   })
+  // }
+
+
 
   // componentDidMount() {
   //   SplashScreen.hide();
@@ -120,6 +166,13 @@ export default class Hire extends Component {
   // }
 
   render() {
+    // if (this.state.isLoading) {
+    //   return (
+    //     <View style={styles.preloader}>
+    //       <ActivityIndicator size="large" color="#9E9E9E" />
+    //     </View>
+    //   )
+    // }
     return (
       <Container>
         <ScrollView>

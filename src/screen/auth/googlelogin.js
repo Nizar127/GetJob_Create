@@ -15,6 +15,7 @@ import {
 } from '@react-native-community/google-signin'
 import { WEB_CLIENT_ID } from '../../utils/keys'
 import { firebase } from '@react-native-firebase/auth'
+import firestore from '@react-native-firebase/firestore';
 
 export default function GoogleLogin() {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -46,6 +47,7 @@ export default function GoogleLogin() {
             setIsLoggedIn(true)
             await firebase.auth().signInWithCredential(credential)
 
+
         } catch (error) {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
                 // when user cancels sign in process,
@@ -69,6 +71,10 @@ export default function GoogleLogin() {
         try {
             const userInfo = await GoogleSignin.signInSilently()
             setUserInfo(userInfo)
+            const user = firebase.auth().currentUser;
+            if (user) {
+                return firestore().collection('Users').doc(user).set(user);
+            }
         } catch (error) {
             if (error.code === statusCodes.SIGN_IN_REQUIRED) {
                 // when user hasn't signed in yet
@@ -83,6 +89,23 @@ export default function GoogleLogin() {
 
     startHire = () => {
         if (signIn()) {
+            //this is used to store data into firestore
+            const user = firebase.auth().currentUser;
+            if (user) {
+                return firestore().collection('Users').doc(user).set(user);
+            }
+            // {
+            //     username: user.username,
+            //     profileImage: user.profileImage,
+            //     displayName: user.displayName
+            // }
+            //}
+
+
+            // this.firestore().collection('Users').collection('Job_Creator').add({
+            //     username: user.name, 
+            //     profileImage: user.photo
+            // })
             Alert.alert('Lets Go')
             this.props.navigation.navigate('hire')
         } else {

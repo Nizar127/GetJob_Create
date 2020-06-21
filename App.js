@@ -35,6 +35,8 @@ import JobComplete from './src/screen/user_profile/jobComplete';
 import GoogleLogin from './src/screen/auth/googlelogin';
 import Loading from './src/loading';
 
+navigator.geolocation = require('@react-native-community/geolocation');
+
 const DashboardTabNavigator = createBottomTabNavigator(
   {
     Hire: Hire,

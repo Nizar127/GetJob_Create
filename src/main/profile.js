@@ -20,9 +20,68 @@ import {
     Button
 } from 'native-base';
 import { signOut } from '../screen/auth/googlelogin';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 
 export default class Profile extends Component {
+
+
+    constructor() {
+        super();
+        this.profileRef = firestore().collection('User').collection('Job_Creator');
+        this.state = {
+            jobname: '',
+            uniqueId: '',
+            jobdesc: '',
+            photo: '',
+            url: '',
+            imageType: '',
+            worktype: '',
+            salary: '',
+            peoplenum: '',
+            time: 0,
+            lat: 0,
+            lng: 0,
+            location: '',
+            isLoading: false
+
+        };
+
+    }
+
+    componentDidMount() {
+        this.unsubscribe = this.profileRef.onSnapshot(this.getProfileData);
+    }
+
+
+    componentWillUnmount() {
+        this.unsubscribe();
+    }
+
+    getProfileData = (querySnapshot) => {
+        const jobs = [];
+        querySnapshot.forEach((res) => {
+            const { jobname, uniqueId, jobdesc, worktype, salary, peoplenum, chosenDate, time, location } = res.data();
+            jobs.push({
+                key: res.id,
+                res,
+                jobname,
+                uniqueId,
+                jobdesc,
+                worktype,
+                salary,
+                peoplenum,
+                chosenDate,
+                time,
+                location
+            });
+        });
+        this.setState({
+            jobs,
+            isLoading: false
+        })
+    }
 
     static navigationOptions = {
         title: 'Profile',
