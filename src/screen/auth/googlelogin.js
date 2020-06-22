@@ -33,38 +33,81 @@ export default function GoogleLogin() {
         })
     }
 
-    signIn = async () => {
-        try {
-            await GoogleSignin.hasPlayServices()
-            const userInfo = await GoogleSignin.signIn()
-            const { accessToken, idToken } = await GoogleSignin.signIn()
-            const credential = firebase.auth.GoogleAuthProvider.credential(
-                idToken,
-                accessToken
-            )
-            setUserInfo(userInfo)
-            setError(null)
-            setIsLoggedIn(true)
-            await firebase.auth().signInWithCredential(credential)
 
 
-        } catch (error) {
-            if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-                // when user cancels sign in process,
-                Alert.alert('Process Cancelled')
-            } else if (error.code === statusCodes.IN_PROGRESS) {
-                // when in progress already
-                Alert.alert('Process in progress')
-            } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                // when play services not available
-                Alert.alert('Play services are not available')
-            } else {
-                // some other error
-                Alert.alert('Something else went wrong... ', error.toString())
-                setError(error)
+    signIn = () => {
+        return new Promise(async (resolve, reject) => {
+            console.log("SignIn start")
+            try {
+                await GoogleSignin.hasPlayServices()
+                const userInfo = await GoogleSignin.signIn()
+                const { accessToken, idToken } = await GoogleSignin.signIn()
+                const credential = firebase.auth.GoogleAuthProvider.credential(
+                    idToken,
+                    accessToken
+                )
+                setUserInfo(userInfo)
+                setError(null)
+                setIsLoggedIn(true)
+                let userCre = await firebase.auth().signInWithCredential(credential)
+                console.log("signIn", userCre)
+                resolve(userCre)
+
+            } catch (error) {
+                if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+                    // when user cancels sign in process,
+                    Alert.alert('Process Cancelled')
+                } else if (error.code === statusCodes.IN_PROGRESS) {
+                    // when in progress already
+                    Alert.alert('Process in progress')
+                } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+                    // when play services not available
+                    Alert.alert('Play services are not available')
+                } else {
+                    // some other error
+                    Alert.alert('Something else went wrong... ', error.toString())
+                    setError(error)
+                    reject(null)
+                }
             }
-        }
+
+        })
+
     }
+
+
+    // signIn = async () => {
+    //     try {
+    //         await GoogleSignin.hasPlayServices()
+    //         const userInfo = await GoogleSignin.signIn()
+    //         const { accessToken, idToken } = await GoogleSignin.signIn()
+    //         const credential = firebase.auth.GoogleAuthProvider.credential(
+    //             idToken,
+    //             accessToken
+    //         )
+    //         setUserInfo(userInfo)
+    //         setError(null)
+    //         setIsLoggedIn(true)
+    //         await firebase.auth().signInWithCredential(credential)
+
+
+    //     } catch (error) {
+    //         if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+    //             // when user cancels sign in process,
+    //             Alert.alert('Process Cancelled')
+    //         } else if (error.code === statusCodes.IN_PROGRESS) {
+    //             // when in progress already
+    //             Alert.alert('Process in progress')
+    //         } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+    //             // when play services not available
+    //             Alert.alert('Play services are not available')
+    //         } else {
+    //             // some other error
+    //             Alert.alert('Something else went wrong... ', error.toString())
+    //             setError(error)
+    //         }
+    //     }
+    // }
 
 
     getCurrentUserInfo = async () => {
@@ -87,27 +130,20 @@ export default function GoogleLogin() {
         }
     }
 
-    startHire = () => {
-        if (signIn()) {
-            //this is used to store data into firestore
-            const user = firebase.auth().currentUser;
-            if (user) {
+    startHire = async () => {
+        //if (signIn()) {
+        //this is used to store data into firestore
+        console.log("starthire", user)
+        const user = await signIn()
+        if (user) {
+            const dataUser = firebase.auth().currentUser;
+            if (dataUser) {
                 return firestore().collection('Users').doc(user).set(user);
             }
-            // {
-            //     username: user.username,
-            //     profileImage: user.profileImage,
-            //     displayName: user.displayName
-            // }
-            //}
-
-
-            // this.firestore().collection('Users').collection('Job_Creator').add({
-            //     username: user.name, 
-            //     profileImage: user.photo
-            // })
             Alert.alert('Lets Go')
             this.props.navigation.navigate('hire')
+
+
         } else {
             Alert.alert('Something Wrong')
         }

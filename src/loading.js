@@ -3,31 +3,38 @@ import { Alert, StatusBar, ImageBackground } from 'react-native';
 import { Container, Button, Content, Spinner, Text, Grid, Col, Row } from 'native-base'
 //import { auth } from '../config/firebase';
 import { firebase } from '@react-native-firebase/auth'
-
+import firestore from '@react-native-firebase/firestore';
 import SplashScreen from 'react-native-splash-screen';
 //import GoogleLogin from 'src/screen/auth/googlelogin';
 
 export default class Loading extends Component {
 
+    // componentWillMount() {
+    //     firebase.auth().onAuthStateChanged((user) => {
+    //         if (user) {
+    //             console.log("User sign in", user);
+    //             return firestore().collection('Users').doc(user).set(user);
+
+    //         }
+    //     });
+    // }
     componentDidMount() {
         SplashScreen.hide();
         firebase.auth().onAuthStateChanged(user => {
-
             setTimeout(() => {
                 if (user) {
-                    //     Alert.alert('Status', 'You are logged in.',
-                    //      [
-                    //         {
-                    //             text: "Start Hiring",
-                    //             onPress: () => this.props.navigation.navigate('Hire')
-                    //         },
-                    //         {
-                    //             text: "View Current Job Posted",
-                    //             onPress: () => this.props.navigation.navigate('MyJob')
-                    //         }
-                    //     ], { cancelable: false }
-                    // );
-                    Alert.alert('Status', 'You are logged in.')
+
+                    const user = firebase.auth().currentUser;
+                    user.providerData.forEach((userInfo) => {
+                        console.log('User info for provider', userInfo);
+                    })
+                    // let data = user;
+                    // if (data) {
+                    //     firestore().collection('Users').doc(data).set(data);
+                    // } else {
+                    //     console.log('Not working buddy')
+                    // }
+                    Alert.alert('Welcome'.user, 'You are logged in.');
                     this.props.navigation.navigate('Hire');
                 }
                 else {
@@ -37,6 +44,8 @@ export default class Loading extends Component {
 
         })
     }
+
+
 
 
     render() {

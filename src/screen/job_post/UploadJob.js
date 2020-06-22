@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, ScrollView, Image, TextInput, Alert, Toast, ActivityIndicator } from 'react-native';
+import { Layouts, View, StyleSheet, ScrollView, Image, TextInput, Alert, Toast, ActivityIndicator } from 'react-native';
 import {
+
   Container,
   Header,
   Content,
@@ -28,13 +29,15 @@ import {
 import firestore from '@react-native-firebase/firestore';
 import ImagePicker from 'react-native-image-crop-picker';
 import RNFetchBlob from 'rn-fetch-blob';
-import GooglePlacesAutoComplete from 'react-native-google-places-autocomplete';
-//import PlacesInput from 'react-native-places-input';
+//import GooglePlacesAutoComplete from 'react-native-google-places-autocomplete';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+
+import PlacesInput from 'react-native-places-input';
 import Geolocation from '@react-native-community/geolocation';
 //import storage from '@react-native-firebase/storage';
 import { storage } from '../../config/firebase'
 import { request, PERMISSIONS } from 'react-native-permissions';
-
+import PropTypes from 'prop-types';
 
 const Blob = RNFetchBlob.polyfill.Blob
 const fs = RNFetchBlob.fs;
@@ -60,7 +63,7 @@ export default class UploadJob extends Component {
       lng: 0,
       location: '',
       isLoading: false,
-      modalVisible: false
+      //modalVisible: false
     };
     this.state = { chosenDate: new Date() };
     this.setDate = this.setDate.bind(this);
@@ -75,6 +78,8 @@ export default class UploadJob extends Component {
     this.state.date = this.state.chosenDate.toString().substr(4, 12);
 
   }
+
+
 
   // componentWillMount() {
   //   Geolocation.setRNConfiguration(config);
@@ -116,6 +121,9 @@ export default class UploadJob extends Component {
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 1000 }
     )
   }
+  // setModalVisible = (visible) => {
+  //   this.setState({ modalVisible: visible });
+  // }
 
   setJobName = (value) => {
     this.setState({ jobname: value })
@@ -262,6 +270,7 @@ export default class UploadJob extends Component {
   }
 
   render() {
+    //const { modalVisible } = this.state;
     if (this.state.isLoading) {
       return (
         <View style={styles.preloader}>
@@ -274,6 +283,109 @@ export default class UploadJob extends Component {
         <Content padder>
           <Text style={{ textAlign: "center", height: 40, fontWeight: "bold", marginTop: 20 }}>Details</Text>
           <Form>
+
+            <Text>Location: {this.state.location}</Text>
+            <ScrollView keyboardShouldPersistTaps="handled">
+              <View keyboardShouldPersistTaps="handled">
+                {/* 
+                <PlacesInput
+                  placeHolder={'Some placeholder'}
+                  stylesContainer={{
+                    position: 'relative',
+                    alignSelf: 'stretch',
+                    margin: 0,
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 400,
+                    shadowOpacity: 0,
+                    borderColor: '#dedede',
+                    borderWidth: 1,
+                    marginBottom: 10
+                  }}
+                  stylesList={{
+                    top: 50,
+                    borderColor: '#dedede',
+                    borderLeftWidth: 1,
+                    borderRightWidth: 1,
+                    borderBottomWidth: 1,
+                    left: -1,
+                    right: -1
+                  }}
+                  keyboardShouldPersistTaps="always"
+                  googleApiKey={'AIzaSyDLllM - _bxchMqm1dqUIhwE54Z99EgEdqw'}
+                  onSelect={place => this.setState({ place })}
+                /> */}
+                <GooglePlacesAutocomplete
+                  placeholder='Search'
+                  minLength={2} // minimum length of text to search
+                  autoFocus={false}
+                  returnKeyType={'search'} // Can be left out for default return key https://facebook.github.io/react-native/docs/textinput.html#returnkeytype
+                  listViewDisplayed='auto'    // true/false/undefined
+                  fetchDetails={true}
+                  renderDescription={row => row.description} // custom description render
+                  onPress={(data, details = null) => { // 'details' is provided when fetchDetails = true
+                    console.log(data, details);
+                    this.setLocation(data, details);
+                  }}
+
+                  getDefaultValue={() => ''}
+
+                  query={{
+                    // available options: https://developers.google.com/places/web-service/autocomplete
+                    key: 'AIzaSyDLllM - _bxchMqm1dqUIhwE54Z99EgEdqw',
+                    language: 'en', // language of the results
+                    types: 'geocode', // default: 'geocode'
+                    components: 'country:my'
+
+                  }}
+                  styles={{
+                    textInputContainer: {
+                      width: '100%',
+
+                    },
+                    listView: {
+                      color: 'black', //To see where exactly the list is
+                      zIndex: 16, //To popover the component outwards
+                      position: 'relative',
+                    },
+
+                    description: {
+                      fontWeight: 'bold'
+                    },
+                    predefinedPlacesDescription: {
+                      color: '#1faadb'
+                    }
+                  }}
+
+                  currentLocation={true} // Will add a 'Current location' button at the top of the predefined places list
+                  currentLocationLabel="Current location"
+                  nearbyPlacesAPI='GooglePlacesSearch' // Which API to use: GoogleReverseGeocoding or GooglePlacesSearch
+                  GoogleReverseGeocodingQuery={{
+                    // available options for GoogleReverseGeocoding API : https://developers.google.com/maps/documentation/geocoding/intro
+                  }}
+                  GooglePlacesDetailsQuery={{
+                    fields: 'formatted_address',
+                  }}
+                  GooglePlacesSearchQuery={{
+                    // available options for GooglePlacesSearch API : https://developers.google.com/places/web-service/search
+                    rankby: 'distance',
+                    types: 'food'
+                  }}
+
+                  filterReverseGeocodingByTypes={['locality', 'administrative_area_level_3']} // filter the reverse geocoding results by types - ['locality', 'administrative_area_level_3'] if you want to display only cities
+                  //predefinedPlaces={[homePlace, workPlace]}
+
+                  debounce={200} // debounce the requests in ms. Set to 0 to remove debounce. By default 0ms.
+                // renderLeftButton={()  => <Image source={require('path/custom/left-icon')} />}
+                // renderRightButton={() => <Text>Custom text after the input</Text>}
+                />
+
+
+
+              </View>
+            </ScrollView>
             <Item fixedLabel last>
               <Label>Job Name</Label>
               <Input onChangeText={this.setJobName} />
@@ -357,8 +469,82 @@ export default class UploadJob extends Component {
               Date: {this.state.date}
             </Text>
 
-            <Text>Location: {this.state.location}</Text>
-            <View>
+            {/* <Text>Location: {this.state.location}</Text>
+            <ScrollView>
+
+
+              <PlacesInput
+                placeHolder={'Some placeholder'}
+                stylesContainer={{
+                  position: 'relative',
+                  alignSelf: 'stretch',
+                  margin: 0,
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  shadowOpacity: 0,
+                  borderColor: '#dedede',
+                  borderWidth: 1,
+                  marginBottom: 10
+                }}
+                stylesList={{
+                  top: 50,
+                  borderColor: '#dedede',
+                  borderLeftWidth: 1,
+                  borderRightWidth: 1,
+                  borderBottomWidth: 1,
+                  left: -1,
+                  right: -1
+                }}
+                keyboardShouldPersistTaps="always"
+                googleApiKey={'AIzaSyDLllM - _bxchMqm1dqUIhwE54Z99EgEdqw'}
+                onSelect={place => this.setState({ place })}
+              />
+            </ScrollView> */}
+
+            {/* <PlacesInput
+
+                googleApiKey={"AIzaSyDLllM-_bxchMqm1dqUIhwE54Z99EgEdqw"}
+                placeHolder={"Search Your Working Places"}
+                language={"en-US"}
+                onSelect={place =>
+                  console.log(place)
+                  //this.setState({ place })
+                  // this.props.goToPoint(get(place, 'result.geometry.location.lat'), get(place, 'result.geometry.location.lng'))
+                }
+                clearQueryOnSelect={true}
+                keyboardShouldPersistTaps="always"
+                resultRender={place => place.description}
+                //queryCountries={['sg', 'my']}
+                //queryCountries={['pl', 'fr']}
+                queryTypes="address"
+                onChangeText={this.setLocation}
+                stylesContainer={{
+                  position: 'relative',
+                  alignSelf: 'stretch',
+                  margin: 0,
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  shadowOpacity: 0,
+                  borderColor: '#dedede',
+                  borderWidth: 1,
+                  marginBottom: 10
+                }}
+                stylesList={{
+                  top: 50,
+                  borderColor: '#dedede',
+                  borderLeftWidth: 1,
+                  borderRightWidth: 1,
+                  borderBottomWidth: 1,
+                  left: -1,
+                  right: -1
+                }}
+              /> */}
+
+            {/* 
               <GooglePlacesAutoComplete
                 placeholder='Search Your Working Places'
                 onPress={(data, details = null) => {
@@ -378,30 +564,31 @@ export default class UploadJob extends Component {
                   components: 'country: my'
                 }}
                 keyboardShouldPersistTaps="always"
-                // listViewDisplayed="auto"
-                // returnKeyType={'search'}
-                // minLength={2}
-                // fetchDetails={true}
-                // autofocus={true}
-                // renderDescription={row => row.description}
+                listViewDisplayed={false}
+                fetchDetails={true}
+                returnKeyType={'search'}
+                minLength={2}
+                fetchDetails={true}
+                autofocus={true}
+                renderDescription={row => row.description}
 
-                // getDefaultValue={() => ''}
-                // currentLocation={true}
-                // nearbyPlacesAPI="GooglePlacesSearch"
-                // GooglePlacesSearchQuery={{
-                //   rankby: 'distance',
-                //   types: 'restaurant'
-                // }}
-                // GooglePlacesDetailsQuery={{
-                //   fields: 'formatted_address'
-                // }}
-                // filterReverseGeocodingByTypes={[
-                //   'locality',
-                //   'administrative_area_level_3'
-                // ]}
-                //debounce={200}
-                // fetchDetailscurrentLocationLabel='Current Location'
-                //listViewDisplayed="false"
+                getDefaultValue={() => ''}
+                currentLocation={true}
+                nearbyPlacesAPI="GooglePlacesSearch"
+                GooglePlacesSearchQuery={{
+                  rankby: 'distance',
+                  types: 'restaurant'
+                }}
+                GooglePlacesDetailsQuery={{
+                  fields: 'formatted_address'
+                }}
+                filterReverseGeocodingByTypes={[
+                  'locality',
+                  'administrative_area_level_3'
+                ]}
+                debounce={200}
+                fetchDetailscurrentLocationLabel='Current Location'
+
                 styles={{
                   textInputContainer: {
                     width: '100%',
@@ -431,8 +618,8 @@ export default class UploadJob extends Component {
                     color: "#1faadb",
                   },
                 }}
-              />
-            </View>
+              /> */}
+
 
             {/* <PlacesInput
               googleApiKey={"AIzaSyDLllM-_bxchMqm1dqUIhwE54Z99EgEdqw"}

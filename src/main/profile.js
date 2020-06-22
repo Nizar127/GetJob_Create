@@ -29,6 +29,7 @@ export default class Profile extends Component {
 
     constructor() {
         super();
+        const User = auth().currentUser.displayName;
         this.profileRef = firestore().collection('User').collection('Job_Creator');
         this.state = {
             jobname: '',
