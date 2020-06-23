@@ -21,6 +21,8 @@ export default class MyOrderDetail extends Component {
       salary: null,
       peoplenum: null,
       time: null,
+      lat: null,
+      lng: null,
       worktype: null,
       location: null,
       url: null

@@ -59,8 +59,8 @@ export default class UploadJob extends Component {
       salary: '',
       peoplenum: '',
       time: 0,
-      lat: 0,
-      lng: 0,
+      lat: '',
+      lng: '',
       location: { description: '' },
       chosenDate: new Date(),
       date: new Date().toString().substr(4, 12),
@@ -161,10 +161,19 @@ export default class UploadJob extends Component {
     this.setState({ date: newDate.toString().substr(4, 12) });
   }
 
-  setLocation = (value) => {
-    this.setState({ location: value })
+  setLocation = (value, details) => {
+    this.setState({
+      ...this.state, location: value,
+      lat: details.geometry.location.lat, lng: details.geometry.location.lng
+    })
     console.log("value", value)
+    console.log("details", details)
   }
+  // setLocation = (value, details) => {
+  //   this.setState({ ...this.state, location: value })
+  //   console.log("value", value)
+  //   console.log("details", details)
+  // }
   // setLocation = (data, details) => {
   //   this.setState({ ...this.state.location, data, details })
   // }
@@ -184,19 +193,19 @@ export default class UploadJob extends Component {
   }
 
   //Return lat and long from address and update profile
-  //    getLatLong(){
-  //     Geocoder.geocodeAddress(this.state.location).then(res => {
-  //       res.map((element)=>{
-  //         this.setState({
-  //           lat:element.position.lat,
-  //           long:element.position.lng
-  //         },
-  //         this.saveProfile) //saving data
-  //       })
-  //       console.log(this.state.lat);
-  //   })
-  //   .catch(err=>console.log(err))
-  // }
+  getLatLong() {
+    Geocoder.geocodeAddress(this.state.location).then(res => {
+      res.map((element) => {
+        this.setState({
+          lat: element.position.lat,
+          long: element.position.lng
+        },
+          this.saveData) //saving data
+      })
+      console.log(this.state.lat);
+    })
+      .catch(err => console.log(err))
+  }
 
 
   //optiona; data
@@ -234,7 +243,7 @@ export default class UploadJob extends Component {
     return new Promise((resolve, reject) => {
       let uploadBlob = null;
       const appendIDToImage = new Date().getTime();
-      const imageRef = storage.ref('thumbnails').child(`${appendIDToImage}`);
+      const imageRef = storage.ref('thumbnails_job').child(`${appendIDToImage}`);
 
       fs.readFile(this.state.url, 'base64')
         .then((data) => {
@@ -260,31 +269,38 @@ export default class UploadJob extends Component {
   }
 
   saveData = () => {
-    if (this.state.jobname && this.state.uniqueId && this.state.jobdesc && this.state.worktype && this.state.salary && this.state.peoplenum && this.state.date && this.state.location && this.state.url) {
+    console.log("state", this.state)
+    if (this.state.jobname && this.state.uniqueId && this.state.jobdesc && this.state.worktype && this.state.salary && this.state.peoplenum && this.state.date && this.state.location && this.state.url && this.state.lat && this.state.lng) {
       if (isNaN(this.state.salary && this.state.peoplenum)) {
         Alert.alert('Status', 'Invalid Figure!');
       }
       else {
-        this.dbRef.add({
-          jobname: this.state.jobname,
-          uniqueId: this.state.uniqueId,
-          jobdesc: this.state.jobdesc,
-          worktype: this.state.worktype,
-          salary: this.state.salary,
-          peoplenum: this.state.peoplenum,
-          chosenDate: this.state.date,
-          location: this.state.location,
-        }).then((res) => {
-          this.setState({
-            jobname: '',
-            uniqueId: '',
-            jobdesc: '',
-            worktype: '',
-            salary: '',
-            peoplenum: '',
-            time: 0,
-            location: '',
-          }); this.uploadImage();
+        this.uploadImage().then(firebaseUrl => {
+          this.dbRef.add({
+            jobname: this.state.jobname,
+            uniqueId: this.state.uniqueId,
+            jobdesc: this.state.jobdesc,
+            worktype: this.state.worktype,
+            salary: this.state.salary,
+            url: firebaseUrl,
+            lat: this.state.lat,
+            lng: this.state.lng,
+            peoplenum: this.state.peoplenum,
+            chosenDate: this.state.date,
+            location: this.state.location,
+          }).then((res) => {
+            this.setState({
+              jobname: '',
+              uniqueId: '',
+              jobdesc: '',
+              worktype: '',
+              salary: '',
+              url: '',
+              peoplenum: '',
+              time: 0,
+              location: '',
+            })
+          });
           Alert.alert('Your Job Has Been Posted', 'Please Choose',
             [
               {
@@ -324,6 +340,7 @@ export default class UploadJob extends Component {
           <Form>
 
             <Text>Location:   {this.state.location.description}</Text>
+            {/* <Input onChangeText={this.getLatLong} /> */}
             <ScrollView keyboardShouldPersistTaps="handled">
               <View keyboardShouldPersistTaps="handled">
 
@@ -384,7 +401,7 @@ export default class UploadJob extends Component {
                     // available options for GoogleReverseGeocoding API : https://developers.google.com/maps/documentation/geocoding/intro
                   }}
                   GooglePlacesDetailsQuery={{
-                    fields: 'formatted_address',
+                    fields: 'geometry',
                   }}
                   GooglePlacesSearchQuery={{
                     // available options for GooglePlacesSearch API : https://developers.google.com/places/web-service/search
