@@ -21,7 +21,11 @@ import {
 } from 'native-base';
 import { signOut } from '../screen/auth/googlelogin';
 import auth from '@react-native-firebase/auth';
+//import firebase from '../config/firebase'
+//import firebase from '@react-native-firebase/app';
 import firestore from '@react-native-firebase/firestore';
+import { firebase } from '@react-native-firebase/auth';
+import { Alert } from 'react-native';
 
 
 export default class Profile extends Component {
@@ -29,8 +33,28 @@ export default class Profile extends Component {
 
     constructor() {
         super();
-        const User = auth().currentUser.displayName;
-        this.profileRef = firestore().collection('User').collection('Job_Creator');
+        users = [];
+        const user = firebase.auth().currentUser;
+        user.providerData.forEach((userInfo) => {
+            console.log('User info for provider: ', userInfo);
+        });
+
+        //if user dh wujud, just alert
+        if (user == null) {
+            firebase.firestore().collection('Users').doc(user.uid).set({
+                uid: user.uid,
+                username: user.email,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                profileImage: user.photoURL
+            }).then(() => {
+                firebase.firestore().collection('Users').doc(user.uid).get().then(data => { console.log(data) })
+            });
+        } else {
+            Alert.alert('Data already existy');
+        }
+
+        //firebase.firestore().collection('Users').doc(user.uid).set(user).collection('Job_Creator');
         this.state = {
             jobname: '',
             uniqueId: '',
@@ -51,38 +75,40 @@ export default class Profile extends Component {
 
     }
 
-    componentDidMount() {
-        this.unsubscribe = this.profileRef.onSnapshot(this.getProfileData);
-    }
 
 
-    componentWillUnmount() {
-        this.unsubscribe();
-    }
+    // componentDidMount() {
+    //     this.unsubscribe = this.profileRef.onSnapshot(this.getProfileData);
+    // }
 
-    getProfileData = (querySnapshot) => {
-        const jobs = [];
-        querySnapshot.forEach((res) => {
-            const { jobname, uniqueId, jobdesc, worktype, salary, peoplenum, chosenDate, time, location } = res.data();
-            jobs.push({
-                key: res.id,
-                res,
-                jobname,
-                uniqueId,
-                jobdesc,
-                worktype,
-                salary,
-                peoplenum,
-                chosenDate,
-                time,
-                location
-            });
-        });
-        this.setState({
-            jobs,
-            isLoading: false
-        })
-    }
+
+    // componentWillUnmount() {
+    //     this.unsubscribe();
+    // }
+
+    // getProfileData = (querySnapshot) => {
+    //     const jobs = [];
+    //     querySnapshot.forEach((res) => {
+    //         const { jobname, uniqueId, jobdesc, worktype, salary, peoplenum, chosenDate, time, location } = res.data();
+    //         jobs.push({
+    //             key: res.id,
+    //             res,
+    //             jobname,
+    //             uniqueId,
+    //             jobdesc,
+    //             worktype,
+    //             salary,
+    //             peoplenum,
+    //             chosenDate,
+    //             time,
+    //             location
+    //         });
+    //     });
+    //     this.setState({
+    //         jobs,
+    //         isLoading: false
+    //     })
+    // }
 
     static navigationOptions = {
         title: 'Profile',

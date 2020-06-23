@@ -31,7 +31,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import RNFetchBlob from 'rn-fetch-blob';
 //import GooglePlacesAutoComplete from 'react-native-google-places-autocomplete';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-
+//import Geocoder from 'react-native-geocoder-reborn';
 import PlacesInput from 'react-native-places-input';
 import Geolocation from '@react-native-community/geolocation';
 //import storage from '@react-native-firebase/storage';
@@ -61,11 +61,13 @@ export default class UploadJob extends Component {
       time: 0,
       lat: 0,
       lng: 0,
-      location: '',
+      location: { description: '' },
+      chosenDate: new Date(),
+      date: new Date().toString().substr(4, 12),
       isLoading: false,
       //modalVisible: false
     };
-    this.state = { chosenDate: new Date() };
+    //this.state = { chosenDate: new Date() };
     this.setDate = this.setDate.bind(this);
     this.selectWorkType = this.selectWorkType.bind(this);
     this.pickImage = this.pickImage.bind(this);
@@ -161,7 +163,15 @@ export default class UploadJob extends Component {
 
   setLocation = (value) => {
     this.setState({ location: value })
+    console.log("value", value)
   }
+  // setLocation = (data, details) => {
+  //   this.setState({ ...this.state.location, data, details })
+  // }
+
+  // setLocation = (data, details) => {
+  //   this.setState({ ...this.state, location: { data, details } })
+  // }
 
   testData() {
     if (this.state.worktype) {
@@ -172,6 +182,35 @@ export default class UploadJob extends Component {
     }
 
   }
+
+  //Return lat and long from address and update profile
+  //    getLatLong(){
+  //     Geocoder.geocodeAddress(this.state.location).then(res => {
+  //       res.map((element)=>{
+  //         this.setState({
+  //           lat:element.position.lat,
+  //           long:element.position.lng
+  //         },
+  //         this.saveProfile) //saving data
+  //       })
+  //       console.log(this.state.lat);
+  //   })
+  //   .catch(err=>console.log(err))
+  // }
+
+
+  //optiona; data
+  // saveProfile = () => {
+
+
+  //   if(this.state.mName && this.state.mAdd){
+  //           updateProfile(this.state.userID,this.state.mName,this.state.mAdd,this.state.lat,this.state.long)
+  //   }
+  //   else {
+  //       Alert.alert('Status', 'Empty Field(s)!')
+  //   }     
+  // }
+
 
   //Pick Image from camera or library
   pickImage() {
@@ -284,39 +323,10 @@ export default class UploadJob extends Component {
           <Text style={{ textAlign: "center", height: 40, fontWeight: "bold", marginTop: 20 }}>Details</Text>
           <Form>
 
-            <Text>Location: {this.state.location}</Text>
+            <Text>Location:   {this.state.location.description}</Text>
             <ScrollView keyboardShouldPersistTaps="handled">
               <View keyboardShouldPersistTaps="handled">
-                {/* 
-                <PlacesInput
-                  placeHolder={'Some placeholder'}
-                  stylesContainer={{
-                    position: 'relative',
-                    alignSelf: 'stretch',
-                    margin: 0,
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: 400,
-                    shadowOpacity: 0,
-                    borderColor: '#dedede',
-                    borderWidth: 1,
-                    marginBottom: 10
-                  }}
-                  stylesList={{
-                    top: 50,
-                    borderColor: '#dedede',
-                    borderLeftWidth: 1,
-                    borderRightWidth: 1,
-                    borderBottomWidth: 1,
-                    left: -1,
-                    right: -1
-                  }}
-                  keyboardShouldPersistTaps="always"
-                  googleApiKey={'AIzaSyDLllM - _bxchMqm1dqUIhwE54Z99EgEdqw'}
-                  onSelect={place => this.setState({ place })}
-                /> */}
+
                 <GooglePlacesAutocomplete
                   placeholder='Search'
                   minLength={2} // minimum length of text to search
@@ -325,9 +335,16 @@ export default class UploadJob extends Component {
                   listViewDisplayed='auto'    // true/false/undefined
                   fetchDetails={true}
                   renderDescription={row => row.description} // custom description render
-                  onPress={(data, details = null) => { // 'details' is provided when fetchDetails = true
+                  onPress={(data, details = null) => {
+                    // this.setState({
+                    //   latitude: details.geometry.location.lat,
+                    //   longitude: details.geometry.location.lng,
+                    // }).then(
+                    //   this.setLocation(data)
+                    // )
                     console.log(data, details);
                     this.setLocation(data, details);
+                    //console.log(data,details);
                   }}
 
                   getDefaultValue={() => ''}
@@ -361,7 +378,8 @@ export default class UploadJob extends Component {
 
                   currentLocation={true} // Will add a 'Current location' button at the top of the predefined places list
                   currentLocationLabel="Current location"
-                  nearbyPlacesAPI='GooglePlacesSearch' // Which API to use: GoogleReverseGeocoding or GooglePlacesSearch
+                  //nearbyPlacesAPI='GooglePlacesSearch' // Which API to use: GoogleReverseGeocoding or GooglePlacesSearch
+                  nearbyPlacesAPI='GoogleReverseGeocoding'
                   GoogleReverseGeocodingQuery={{
                     // available options for GoogleReverseGeocoding API : https://developers.google.com/maps/documentation/geocoding/intro
                   }}
@@ -473,34 +491,6 @@ export default class UploadJob extends Component {
             <ScrollView>
 
 
-              <PlacesInput
-                placeHolder={'Some placeholder'}
-                stylesContainer={{
-                  position: 'relative',
-                  alignSelf: 'stretch',
-                  margin: 0,
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  shadowOpacity: 0,
-                  borderColor: '#dedede',
-                  borderWidth: 1,
-                  marginBottom: 10
-                }}
-                stylesList={{
-                  top: 50,
-                  borderColor: '#dedede',
-                  borderLeftWidth: 1,
-                  borderRightWidth: 1,
-                  borderBottomWidth: 1,
-                  left: -1,
-                  right: -1
-                }}
-                keyboardShouldPersistTaps="always"
-                googleApiKey={'AIzaSyDLllM - _bxchMqm1dqUIhwE54Z99EgEdqw'}
-                onSelect={place => this.setState({ place })}
-              />
             </ScrollView> */}
 
             {/* <PlacesInput
