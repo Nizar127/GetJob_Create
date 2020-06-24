@@ -136,10 +136,10 @@ export default function GoogleLogin() {
         console.log("starthire", user)
         const user = await signIn()
         if (user) {
-            const dataUser = firebase.auth().currentUser;
-            if (dataUser) {
-                return firestore().collection('Users').doc(user).set(user);
-            }
+            // const dataUser = firebase.auth().currentUser;
+            // if (dataUser) {
+            //     return firestore().collection('Users').doc(user).set(user);
+            // }
             Alert.alert('Lets Go')
             this.props.navigation.navigate('hire')
 

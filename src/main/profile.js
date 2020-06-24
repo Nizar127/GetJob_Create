@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
-import { StyleSheet, ScrollView, Image } from 'react-native';
+import {
+    StyleSheet, ScrollView, Image, FlatList,
+    UIManager, Animated,
+    LayoutAnimation, TextInput, Modal, TouchableHighlight
+} from 'react-native';
 import {
     Container,
     Header,
@@ -27,13 +31,18 @@ import firestore from '@react-native-firebase/firestore';
 import { firebase } from '@react-native-firebase/auth';
 import { Alert } from 'react-native';
 
+console.disableYellowBox = true;
+
+
+
 
 export default class Profile extends Component {
 
 
     constructor() {
         super();
-        users = [];
+
+
         const user = firebase.auth().currentUser;
         user.providerData.forEach((userInfo) => {
             console.log('User info for provider: ', userInfo);
@@ -51,12 +60,19 @@ export default class Profile extends Component {
                 firebase.firestore().collection('Users').doc(user.uid).get().then(data => { console.log(data) })
             });
         } else {
-            Alert.alert('Data already existy');
+            console.log('Data Already Exist');
+            //Alert.alert('Data already exist');
         }
+
+        this.initData = user
+
 
         //firebase.firestore().collection('Users').doc(user.uid).set(user).collection('Job_Creator');
         this.state = {
-            jobname: '',
+            users: [],
+            username: '',
+            phonenumber: '',
+            keyplayer: '',
             uniqueId: '',
             jobdesc: '',
             photo: '',
@@ -69,46 +85,104 @@ export default class Profile extends Component {
             lat: 0,
             lng: 0,
             location: '',
-            isLoading: false
+            show: true,
+            //listViewData: data,
+            newContact: "",
+            mytext: '',
+            data: this.initData,
+            isModalVisible: false,
+            inputText: '',
+            editedItem: 0,
 
         };
 
     }
 
+    componentDidMount() {
+        this.unsubscribe = firebase.firestore().collection('Users').onSnapshot(this.getCollection);
+    }
 
 
     // componentDidMount() {
-    //     this.unsubscribe = this.profileRef.onSnapshot(this.getProfileData);
-    // }
+    //     const UserRef = firebase.firestore().collection('Users');
+    //     UserRef.get().then((res) => {
+    //         if (res.exists) {
+    //             const profile = res.data();
+    //             this.setState({
+    //                 key: res.id,
+    //                 username: profile.username,
+    //                 phonenumber: profile.phonenumber,
+    //                 profileImage: profile.url,
 
-
-    // componentWillUnmount() {
-    //     this.unsubscribe();
-    // }
-
-    // getProfileData = (querySnapshot) => {
-    //     const jobs = [];
-    //     querySnapshot.forEach((res) => {
-    //         const { jobname, uniqueId, jobdesc, worktype, salary, peoplenum, chosenDate, time, location } = res.data();
-    //         jobs.push({
-    //             key: res.id,
-    //             res,
-    //             jobname,
-    //             uniqueId,
-    //             jobdesc,
-    //             worktype,
-    //             salary,
-    //             peoplenum,
-    //             chosenDate,
-    //             time,
-    //             location
-    //         });
-    //     });
-    //     this.setState({
-    //         jobs,
-    //         isLoading: false
+    //             });
+    //             console.log("state", this.state)
+    //         } else {
+    //             console.log("Whoops! Document does not exists");
+    //         }
     //     })
     // }
+
+    componentWillUnmount() {
+        this.unsubscribe();
+    }
+
+    //get the data first
+    getCollection = (querySnapshot) => {
+        const users = [];
+        querySnapshot.forEach((res) => {
+            const { username, phonenumber, profileImage } = res.data();
+            users.push({
+                key: res.id,
+                res,
+                username,
+                phonenumber,
+                profileImage
+            });
+        });
+        this.setState({
+            users,
+            isLoading: false
+        })
+    }
+
+    setModalVisible = (bool) => {
+        this.setState({ isModalVisible: bool })
+    }
+
+    setInputText = (text) => {
+        this.setState({ inputText: text })
+    }
+
+    setEditedItem = (id) => {
+        this.setState({ editedItem: id })
+    }
+    handleEditItem = (editedItem) => {
+        const newData = this.state.data.map(item => {
+            if (item.id === editedItem) {
+                item.text = this.state.inputText
+                return item
+            }
+            return item
+        })
+        this.setState({ data: newData })
+    }
+    //hide card example
+    ShowHideComponent = () => {
+        if (this.state.show == true) {
+            this.setState({ show: false });
+        } else {
+            this.setState({ show: true });
+        }
+    };
+
+
+
+
+    updateText = (value) => {
+        this.setState({ myText: value })
+    }
+
+
 
     static navigationOptions = {
         title: 'Profile',
@@ -138,115 +212,223 @@ export default class Profile extends Component {
 
     render() {
         return (
-            <Container>
-
-                <ScrollView>
-                    <Card >
-                        <CardItem cardBody>
-                            <Image source={require('../img/kambing.jpg')} style={{ height: 200, width: null, flex: 1 }} />
-
-                        </CardItem>
-                        <CardItem>
-                            <Body>
-                                <Text>Creative World Industries</Text>
-                            </Body>
-                        </CardItem>
-                        {/* <CardItem>   
-                     <Text style={{marginTop: 5, marginBottom: 5}}>Creative World Industries</Text>
-                </CardItem> */}
-
-                    </Card>
-
-                    <Card style={{ height: 200 }}>
-                        <CardItem header bordered>
-                            <Text>About Us</Text>
-                        </CardItem>
-                        <CardItem cardBody>
-                            <Body>
-                                <Text>We are system integrator contract companies specialize in the government's and business IT support</Text>
-                            </Body>
-                        </CardItem>
-                    </Card>
-                    <Card style={{ height: auto }}>
-                        <CardItem header bordered>
-                            <Text>Notable Project</Text>
-                        </CardItem>
-                        <CardItem cardBody>
-                            <Content>
-                                <Separator>
-                                    <Text>Government</Text>
-                                </Separator>
-                                <ListItem>
-                                    <Text>JKR</Text>
-                                </ListItem>
-                                <ListItem>
-                                    <Text>Jabtan Hasil</Text>
-                                </ListItem>
-                                <ListItem>
-                                    <Text>SPAD</Text>
-                                </ListItem>
-                                <ListItem>
-                                    <Text>HASIL</Text>
-                                </ListItem>
-                                <Separator bordered>
-                                    <Text>SME</Text>
-                                </Separator>
-                                <ListItem>
-                                    <Text>Kinematics Business Management Firm</Text>
-                                </ListItem>
-                                <ListItem>
-                                    <Text>Derren Consulting Firm</Text>
-                                </ListItem>
-                                <ListItem>
-                                    <Text>GoRide</Text>
-                                </ListItem>
-                            </Content>
-                        </CardItem>
-                    </Card>
-                    <Card style={{ height: 150 }}>
-                        <CardItem cardBody bordered button onPress={() => this.props.navigation.navigate('MyJob')}>
-                            <Text style={{ justifyContent: 'center' }}>Click Here to View Your Uploaded Job</Text>
-                        </CardItem>
-                    </Card>
-                    <Card>
-                        <CardItem header>
-                            <Text>Task List</Text>
-                        </CardItem>
-                        <CardItem cardBody button onPress={() => this.props.navigation.navigate('TaskList')}>
-                            <Text style={{ justifyContent: 'center' }}>View Task</Text>
-                        </CardItem>
-                    </Card>
-                    <Card style={{ height: 250 }}>
-                        <CardItem header bordered>
-                            <Text>Key Player</Text>
-                        </CardItem>
-                        <CardItem cardBody style={{ flex: 1, flexDirection: 'row', padding: 10, margin: 5, alignContent: 'space-around', justifyContent: 'space-between', alignItems: 'center', marginLeft: 5 }}>
-                            <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
-                            <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
-                            <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
-                            <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
-                            <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
+            <ScrollView>
+                <Container>
 
 
-                        </CardItem>
-                    </Card>
-                    <Card>
-                        <Button block danger last style={{ marginTop: 20, marginBottom: 20 }} onPress={this.logoff}>
-                            <Text>Sign Out</Text>
-                        </Button>
-                    </Card>
+                    <Content padder>
+                        <FlatList
+                            data={this.state.users}
+                            // keyExtractor={(item) => item.id.toString()}
+                            renderItem={({ item, index }) => {
+                                return (
+                                    <Container style={{ flex: 1 }}>
+                                        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
 
-                </ScrollView>
+
+                                            <Card key={index}>
+                                                <CardItem cardBody>
+                                                    <Image source={{ uri: item.profileImage }} style={{ height: 200, width: null, flex: 1 }} />
+
+                                                </CardItem>
+                                                <CardItem>
+                                                    <Body>
+                                                        <Text>{item.username}</Text>
+                                                    </Body>
+                                                </CardItem>
+
+
+                                            </Card>
+
+                                            <Card style={{ height: 50 }}>
+                                                <CardItem cardBody bordered button onPress={() => this.props.navigation.navigate('MyJob')}>
+                                                    <Text style={{ justifyContent: 'center' }}>Click Here to View Your Uploaded Job</Text>
+                                                </CardItem>
+                                            </Card>
 
 
 
-            </Container>
+
+                                            <Card style={{ height: 200 }}>
+                                                <CardItem header bordered>
+                                                    <Text>About Us</Text>
+                                                </CardItem>
+                                                <CardItem cardBody bordered button
+                                                    onPress={() => { this.setModalVisible(true); this.setInputText(item.text), this.setEditedItem(item.id) }}>
+                                                    <Body>
+                                                        <Text onPress={this.setText} style={{ margin: 30 }}>Click Here to Edit</Text>
+                                                        <Text>{item.myText}</Text>
+
+                                                    </Body>
+                                                </CardItem>
+                                            </Card>
+                                            <Card style={{ height: auto }}>
+                                                <CardItem header bordered>
+
+                                                    <Text>Notable Project</Text>
+                                                </CardItem>
+                                                <CardItem cardBody>
+                                                    <Content>
+                                                        <Separator>
+                                                            <Text onPress={this.setText} value={item.myText}>Government</Text>
+                                                        </Separator>
+                                                        <ListItem>
+                                                            <Text>JKR</Text>
+                                                        </ListItem>
+                                                        <ListItem>
+                                                            <Text>Jabatan Hasil</Text>
+                                                        </ListItem>
+                                                        <ListItem>
+                                                            <Text>SPAD</Text>
+                                                        </ListItem>
+                                                        <ListItem>
+                                                            <Text>HASIL</Text>
+                                                        </ListItem>
+                                                        <Separator bordered>
+                                                            <Text>SME</Text>
+                                                        </Separator>
+                                                        <ListItem>
+                                                            <Text>Kinematics Business Management Firm</Text>
+                                                        </ListItem>
+                                                        <ListItem>
+                                                            <Text>Derren Consulting Firm</Text>
+                                                        </ListItem>
+                                                        <ListItem>
+                                                            <Text>GoRide</Text>
+                                                        </ListItem>
+                                                    </Content>
+                                                </CardItem>
+                                            </Card>
+
+                                            <Card>
+                                                <CardItem header>
+                                                    <Text>Task List</Text>
+                                                </CardItem>
+                                                <CardItem cardBody button onPress={() => this.props.navigation.navigate('TaskList')}>
+                                                    <Text style={{ justifyContent: 'center' }}>View Task</Text>
+                                                </CardItem>
+                                            </Card>
+                                            <Card style={{ height: 250 }}>
+                                                <CardItem header bordered>
+                                                    <Text>Key Player</Text>
+                                                </CardItem>
+                                                <CardItem cardBody style={{ flex: 1, flexDirection: 'row', padding: 10, margin: 5, alignContent: 'space-around', justifyContent: 'space-between', alignItems: 'center', marginLeft: 5 }}>
+                                                    <ScrollView horizontal={true}>
+
+                                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
+                                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
+                                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
+                                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
+                                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
+                                                    </ScrollView>
+
+                                                </CardItem>
+                                            </Card>
 
 
+
+
+                                            <Card>
+
+                                                <Button block danger last style={{ marginTop: 20, marginBottom: 20 }} onPress={this.logoff}>
+                                                    <Text>Sign Out</Text>
+                                                </Button>
+                                            </Card>
+                                        </ScrollView>
+                                    </Container>
+
+                                )
+                            }}
+                        />
+                        <Modal animationType="fade" visible={this.state.isModalVisible}
+                            onRequestClose={() => this.setModalVisible(false)}>
+                            <View style={styles.modalView}>
+                                <Text style={styles.text}>Change text:</Text>
+                                <TextInput
+                                    style={styles.textInput}
+                                    onChangeText={(text) => { this.setState({ inputText: text }); console.log('state ', this.state.inputText) }}
+                                    defaultValue={this.state.inputText}
+                                    editable={true}
+                                    multiline={false}
+                                    maxLength={200}
+                                />
+                                <TouchableHighlight onPress={() => { this.handleEditItem(this.state.editedItem); this.setModalVisible(false) }}
+                                    style={[styles.touchableHighlight, { backgroundColor: 'orange' }]} underlayColor={'#f1f1f1'}>
+                                    <Text style={styles.text}>Save</Text>
+                                </TouchableHighlight>
+                            </View>
+                        </Modal>
+
+                    </Content>
+
+                </Container>
+
+            </ScrollView>
 
 
         );
     }
 }
+
+const styles = StyleSheet.create({
+    header: {
+        height: 60,
+        backgroundColor: 'orange',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    headerText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: 'white',
+    },
+    contentContainer: {
+        backgroundColor: 'white',
+    },
+    item: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        borderBottomColor: 'grey',
+        alignItems: 'center',
+    },
+    marginLeft: {
+        marginLeft: 5,
+    },
+    menu: {
+        width: 20,
+        height: 2,
+        backgroundColor: '#111',
+        margin: 2,
+        borderRadius: 3,
+    },
+    text: {
+        marginVertical: 30,
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginLeft: 10,
+    },
+
+    textInput: {
+        width: '90%',
+        marginLeft: 10,
+        marginRight: 10,
+        marginBottom: 30,
+        borderColor: 'gray',
+        borderBottomWidth: 2,
+        fontSize: 16,
+    },
+    modalView: {
+        flex: 1,
+        backgroundColor: 'white',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    touchableHighlight: {
+        backgroundColor: 'white',
+        marginVertical: 10,
+        alignSelf: 'stretch',
+        alignItems: 'center',
+    }
+})
 
 

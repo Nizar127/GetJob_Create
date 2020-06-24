@@ -27,6 +27,7 @@ import {
 //import { addJob, addApplicant } from '../../service/DataService';
 //import Icon from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
+import { firebase } from '@react-native-firebase/auth';
 import ImagePicker from 'react-native-image-crop-picker';
 import RNFetchBlob from 'rn-fetch-blob';
 //import GooglePlacesAutoComplete from 'react-native-google-places-autocomplete';
@@ -47,8 +48,13 @@ window.Blob = Blob;
 export default class UploadJob extends Component {
   constructor() {
     super();
+
+    //const user = firebase.auth().currentUser;
     this.dbRef = firestore().collection('Job_list');
     this.state = {
+      currentUser: null,
+      userID: null,
+      jobCreatorName: '',
       jobname: '',
       uniqueId: '',
       jobdesc: '',
@@ -59,8 +65,8 @@ export default class UploadJob extends Component {
       salary: '',
       peoplenum: '',
       time: 0,
-      lat: '',
-      lng: '',
+      lat: 0,
+      lng: 0,
       location: { description: '' },
       chosenDate: new Date(),
       date: new Date().toString().substr(4, 12),
@@ -78,10 +84,24 @@ export default class UploadJob extends Component {
     // state = { ScaleAnimation: false };
 
     this.state.date = this.state.chosenDate.toString().substr(4, 12);
+    // this.setState({ userid: user })
 
   }
 
+  componentDidMount() {
+    //get data first
+    var user = firebase.auth().currentUser;
+    var name, uid;
+    if (user != null) {
+      name = user.displayName;
+      uid = user.uid;
+    }
 
+    const { currentUser } = firebase.auth();
+    this.setState({ currentUser });
+    this.state.userID = currentUser.uid;
+    this.state.jobCreatorName = currentUser.displayName;
+  }
 
   // componentWillMount() {
   //   Geolocation.setRNConfiguration(config);
@@ -123,9 +143,15 @@ export default class UploadJob extends Component {
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 1000 }
     )
   }
-  // setModalVisible = (visible) => {
-  //   this.setState({ modalVisible: visible });
-  // }
+
+  setUserID = (value) => {
+    this.setState({ userID: value });
+
+  }
+
+  setJobCreatorName = (value) => {
+    this.setSalary({ jobCreatorName: value });
+  }
 
   setJobName = (value) => {
     this.setState({ jobname: value })
@@ -169,18 +195,7 @@ export default class UploadJob extends Component {
     console.log("value", value)
     console.log("details", details)
   }
-  // setLocation = (value, details) => {
-  //   this.setState({ ...this.state, location: value })
-  //   console.log("value", value)
-  //   console.log("details", details)
-  // }
-  // setLocation = (data, details) => {
-  //   this.setState({ ...this.state.location, data, details })
-  // }
 
-  // setLocation = (data, details) => {
-  //   this.setState({ ...this.state, location: { data, details } })
-  // }
 
   testData() {
     if (this.state.worktype) {
@@ -208,17 +223,8 @@ export default class UploadJob extends Component {
   }
 
 
-  //optiona; data
-  // saveProfile = () => {
 
 
-  //   if(this.state.mName && this.state.mAdd){
-  //           updateProfile(this.state.userID,this.state.mName,this.state.mAdd,this.state.lat,this.state.long)
-  //   }
-  //   else {
-  //       Alert.alert('Status', 'Empty Field(s)!')
-  //   }     
-  // }
 
 
   //Pick Image from camera or library
@@ -270,13 +276,15 @@ export default class UploadJob extends Component {
 
   saveData = () => {
     console.log("state", this.state)
-    if (this.state.jobname && this.state.uniqueId && this.state.jobdesc && this.state.worktype && this.state.salary && this.state.peoplenum && this.state.date && this.state.location && this.state.url && this.state.lat && this.state.lng) {
+    if (this.state.userID && this.state.jobCreatorName && this.state.jobname && this.state.uniqueId && this.state.jobdesc && this.state.worktype && this.state.salary && this.state.peoplenum && this.state.date && this.state.location && this.state.url && this.state.lat && this.state.lng) {
       if (isNaN(this.state.salary && this.state.peoplenum)) {
         Alert.alert('Status', 'Invalid Figure!');
       }
       else {
         this.uploadImage().then(firebaseUrl => {
           this.dbRef.add({
+            uid: this.state.userID,
+            jobCreatorName: this.state.jobCreatorName,
             jobname: this.state.jobname,
             uniqueId: this.state.uniqueId,
             jobdesc: this.state.jobdesc,
@@ -314,8 +322,6 @@ export default class UploadJob extends Component {
             ], { cancelable: false }
           );
         })
-        //addJob(this.state.jobname, this.state.uniqueId, this.state.jobdesc, this.state.worktype, this.state.salary, this.state.peoplenum, this.state.date, this.state.location);
-        //addApplicant(this.state.jobname, this.state.uniqueId, this.state.jobdesc, this.state.worktype, this.state.salary, this.state.peoplenum, this.state.date, this.state.location);
 
 
       }
@@ -509,123 +515,6 @@ export default class UploadJob extends Component {
 
 
             </ScrollView> */}
-
-            {/* <PlacesInput
-
-                googleApiKey={"AIzaSyDLllM-_bxchMqm1dqUIhwE54Z99EgEdqw"}
-                placeHolder={"Search Your Working Places"}
-                language={"en-US"}
-                onSelect={place =>
-                  console.log(place)
-                  //this.setState({ place })
-                  // this.props.goToPoint(get(place, 'result.geometry.location.lat'), get(place, 'result.geometry.location.lng'))
-                }
-                clearQueryOnSelect={true}
-                keyboardShouldPersistTaps="always"
-                resultRender={place => place.description}
-                //queryCountries={['sg', 'my']}
-                //queryCountries={['pl', 'fr']}
-                queryTypes="address"
-                onChangeText={this.setLocation}
-                stylesContainer={{
-                  position: 'relative',
-                  alignSelf: 'stretch',
-                  margin: 0,
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  shadowOpacity: 0,
-                  borderColor: '#dedede',
-                  borderWidth: 1,
-                  marginBottom: 10
-                }}
-                stylesList={{
-                  top: 50,
-                  borderColor: '#dedede',
-                  borderLeftWidth: 1,
-                  borderRightWidth: 1,
-                  borderBottomWidth: 1,
-                  left: -1,
-                  right: -1
-                }}
-              /> */}
-
-            {/* 
-              <GooglePlacesAutoComplete
-                placeholder='Search Your Working Places'
-                onPress={(data, details = null) => {
-                  // this.setState({
-                  //   latitude: details.geometry.location.lat,
-                  //   longitude: details.geometry.location.lng,
-                  // }).then(
-                  //   this.setLocation(data)
-                  // )
-                  console.log(data, details);
-                  this.setLocation(data, details);
-                  //console.log(data,details);
-                }}
-                query={{
-                  key: 'AIzaSyCz2vqdCuzXmMZ10CT21J_xe0GrfLEqIGg',
-                  language: 'en',
-                  components: 'country: my'
-                }}
-                keyboardShouldPersistTaps="always"
-                listViewDisplayed={false}
-                fetchDetails={true}
-                returnKeyType={'search'}
-                minLength={2}
-                fetchDetails={true}
-                autofocus={true}
-                renderDescription={row => row.description}
-
-                getDefaultValue={() => ''}
-                currentLocation={true}
-                nearbyPlacesAPI="GooglePlacesSearch"
-                GooglePlacesSearchQuery={{
-                  rankby: 'distance',
-                  types: 'restaurant'
-                }}
-                GooglePlacesDetailsQuery={{
-                  fields: 'formatted_address'
-                }}
-                filterReverseGeocodingByTypes={[
-                  'locality',
-                  'administrative_area_level_3'
-                ]}
-                debounce={200}
-                fetchDetailscurrentLocationLabel='Current Location'
-
-                styles={{
-                  textInputContainer: {
-                    width: '100%',
-                    height: 70,
-                    backgroundColor: "rgba(0,0,0,0)",
-                    borderTopWidth: 0,
-                    borderBottomWidth: 0,
-                  },
-                  textInput: {
-                    marginLeft: 0,
-                    marginRight: 0,
-                    height: 38,
-                    width: 50,
-                    color: "#5d5d5d",
-                    fontSize: 16,
-                  },
-                  listView: {
-                    top: 50,
-                    borderColor: '#dedede',
-                    borderLeftWidth: 1,
-                    borderRightWidth: 1,
-                    borderBottomWidth: 1,
-                    left: -1,
-                    right: -1
-                  },
-                  predefinedPlacesDescription: {
-                    color: "#1faadb",
-                  },
-                }}
-              /> */}
 
 
             {/* <PlacesInput

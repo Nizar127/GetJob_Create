@@ -8,43 +8,83 @@ import MapView,
 { PROVIDER_GOOGLE, Marker, Callout, Polygon, Circle }
   from 'react-native-maps';
 import firestore from '@react-native-firebase/firestore';
+import Geolocation from '@react-native-community/geolocation';
+import { request, PERMISSIONS } from 'react-native-permissions';
 
-//let job = db.ref('/Job');
+const { width, height } = Dimensions.get('window')
+
+const SCREEN_HEIGHT = height
+const SCREEN_WIDTH = width
+const ASPECT_RATIO = width / height
+const LATTITUDE_DELTA = 0.0922
+const LONGTITUDE_DELTA = LATTITUDE_DELTA * ASPECT_RATIO
+
+
+// async function requestLocationPermission() {
+//   try {
+//     const granted = await PermissionsAndroid.request(
+//       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+//       {
+//         title: 'GetJob Location Permission',
+//         message:
+//         'GetJob needs access to your device location' +
+//         'so you can find nearby mosques.',
+//         buttonNegative:'Cancel',
+//         buttonPositive: 'OK'
+//       },      
+//     );
+
+//     if (granted === PermissionsAndroid.RESULTS.GRANTED){
+//       console.log('You can use the device location');
+//     }
+//     else {
+//       console.log('Device location permission denied');
+//     }
+//   }
+//   catch (err){
+//     console.warn(err);
+//   }
+// }
 
 export default class MyOrderDetail extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       jobs: [],
+      uniqueId: null,
       jobname: null,
       jobdesc: null,
       salary: null,
       peoplenum: null,
-      time: null,
-      lat: null,
-      lng: null,
+      chosenDate: null,
+      lat: 0,
+      lng: 0,
       worktype: null,
-      location: null,
-      url: null
+      location: { description: '' },
+      url: null,
+      mapRegion: null,
+      initialLocation: null,
+      gpsAccuracy: null,
+      markers: [],
+      dynamicAddress: [],
+      item: {},
+      items: [],
+      initialPosition: {
+        latitude: 0,
+        longitude: 0,
+        latitudeDelta: 0,
+        longitudeDelta: 0
+      },
+      markerPosition: {
+        latitude: 0,
+        longitude: 0
+      }
     }
-
-    // this.state = {
-    //   jobs: [],
-    //   uniqueId: this.props.jobs.uniqueId,
-    //   jobname: this.props.jobs.jobname,
-    //   jobdesc: this.props.jobs.jobdesc,
-    //   salary: this.props.jobs.salary,
-    //   peoplenum: this.props.jobs.peoplenum,
-    //   chosenDate: this.props.jobs.chosenDate,
-    //   worktype: this.props.jobs.worktype,
-    //   location: this.props.jobs.location,
-    // }
-
 
   }
 
   componentDidMount() {
-    const detailRef = firestore().collection('Application').doc(this.props.navigation.state.params.userkey);
+    const detailRef = firestore().collection('Job_list').doc(this.props.navigation.state.params.userkey);
     detailRef.get().then((res) => {
       if (res.exists) {
         const job = res.data();
@@ -54,110 +94,152 @@ export default class MyOrderDetail extends Component {
           jobdesc: job.jobdesc,
           salary: job.salary,
           peoplenum: job.peoplenum,
-          chosenDate: job.time,
+          chosenDate: job.chosenDate,
           worktype: job.worktype,
           lat: job.lat,
           lng: job.lng,
           location: job.location,
           url: job.url
         });
+        console.log("state", this.state)
       } else {
         console.log("Whoops! Document does not exists");
       }
     })
+    // detailRef.onSnapshot(function (querySnapshot) {
+    //   var markerIDs = [];
+    //   var i = 1;
+    //   querySnapshot.forEach(function (doc) {
+    //     var data = doc.val;
+    //     dynamicAddress.push({
+    //       'key': 1,
+    //       'address': {
+    //         latitude: data.lat,
+    //         longitude: data.lng
+    //       }
+    //     });
+    //   });
+    //   console.log(data.val().lat)
+    //   markerIDs.push("Marker" + i);
+    //   this.setState({ dynamicAddress: dynamicAddress });
+    // })
+
+
+    // setTimeout(() => {
+    //   self.focusMap(markerIDs, true)
+    // }, 3200);
+
+    requestLocationPermission = async () => {
+      if (Platform.OS === 'ios') {
+        var response = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
+        console.log('iPhone: ' + response);
+
+        if (response === 'granted') {
+          this.locateCurrentPosition();
+        }
+      } else {
+        var response = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
+        console.log('Android: ' + response);
+
+        if (response === 'granted') {
+          this.locateCurrentPosition();
+        }
+      }
+    }
+
+    locateCurrentPosition = () => {
+      Geolocation.getCurrentPosition(
+        position => {
+          console.log(JSON.stringify(position));
+
+          let initialPosition = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            latitudeDelta: 0.09,
+            longitudeDelta: 0.035
+          }
+
+          this.setState({ ...this.state, initialPosition });
+          console.log("state", state)
+
+        },
+
+        error => Alert.alert(error.message),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 1000 }
+      )
+    }
+
+    // Geolocation.getCurrentPosition((position) => {
+    //   var lat = parseFloat(position.coords.latitude)
+    //   var lng = parseFloat(position.coords.longitude)
+
+    //   var initialRegion = {
+    //     latitude: lat,
+    //     longitude: lng,
+    //     latitudeDelta: LATTITUDE_DELTA,
+    //     longitudeDelta: LONGTITUDE_DELTA
+    //   }
+
+    //   this.setState({ initialPosition: initialRegion })
+    //   this.setState({ markerPosition: initialRegion })
+    // },
+    //   (error) => alert(JSON.stringify(error)),
+    //   { enableHighAccuracy: true, timeout: 200000, maximumAge: 1000 })
+
+    // this.watchID = Geolocation.watchPosition((position) => {
+    //   var lat = parseFloat(position.coords.latitude)
+    //   var lng = parseFloat(position.coords.longitude)
+    //   var lastRegion = {
+    //     latitude: lat,
+    //     longitude: lng,
+    //     longitudeDelta: LONGTITUDE_DELTA,
+    //     latitudeDelta: LATTITUDE_DELTA
+    //   }
+
+    //   this.detailRef.push({
+    //     lat: lat,
+    //     lng: lng
+    //   }).then(function () {
+    //     // Clear message text field and SEND button state.
+    //     this.setState({ initialPosition: lastRegion })
+    //     this.setState({ markerPosition: lastRegion })
+    //   }.bind(this)).catch(function (error) {
+    //     console.error('Error writing new message to Firebase Database', error);
+    //   });
+
+
+
+    // })
+
+
+
   }
 
-  //var key = Object.keys(snapshot.val())[0];
+  focusMap(markers, animated) {
+    this.map.fitToSuppliedMarkers(markers, animated);
+  }
 
-  // componentDidMount() {
-  //   //this._isMounted = true;
-  //   //  if(this._isMounted){
-  //   let query = job.orderByChild("uniqueId").equalTo(uniqueId);
-  //   query.on('value', (snapshot) => {
-  //     let key = snapshot.key;
-  //     let data = snapshot.val();
-  //     if (data) {
-  //       //let id = Object.keys(data)[0];
-  //       let firebaseData = Object.values(data);
-  //       //key = Object.keys(data)[0];
-  //       // if(this._isMounted){
-  //       if (key) {
-  //         this.setState({ jobs: firebaseData }, () => {
-  //           this.state.jobs.map((element) => {
-  //             this.setState({
-  //               jobname: element.jobname,
-  //               jobdesc: element.jobdesc,
-  //               uniqueId: element.uniqueId,
-  //               salary: element.salary,
-  //               peoplenum: element.peoplenum,
-  //               worktype: element.worktype,
-  //               chosenDate: element.chosenDate,
-  //               location: element.location,
-  //             });
-  //           });
-  //         });
-  //       }
-  //       // }
+  setInitialLocation(region) {
+    this.setState({
+      initialLocation: region
+    })
+  }
 
-  //     }
-  //   });
-  //   //    }
+  componentWillUnmount() {
+    Geolocation.clearWatch(this.watchID);
+  }
 
-  // }
-  // componentDidMount() {
+  onRegionChange = (region, gpsAccuracy) => {
+    this.setState({
+      mapRegion: region,
+      gpsAccuracy: gpsAccuracy
+    });
+  }
 
-  //   const {navigation} = this.props;
-  //   const jobID = navigation.getParam('id');
-  //     //query here
-  //  let query = job.orderByChild('id').equalTo(jobID)
-  //     //query.on .....
-  //   query.on('value', (snapshot) => {
-  //       let data = snapshot.val();
-  //         if(data){
-  //           let firebaseData = Object.values(data);
-  //           this.setState({jobs: firebaseData},()=>{
-  //               this.state.jobs.map((element)=>{
-  //                   this.setState({
-  //                       jobname:element.jobname,
-  //                       salary:element.salary,
-  //                       worktype:element.worktype,
-  //                       peoplenum:element.peoplenum,
-  //                       chosenDate:element.chosenDate,
-  //                       location:element.location
-  //                   })
-  //               })
-  //           });
-  //           console.log(this.state.jobs);
-  //         }
-  //    });
-  // }
+  setUniqueId = (value) => {
+    this.setState({ uniqueId: value });
+  }
 
-  //   deleteConfirmation= (matricno) => {
-  //     Alert.alert(
-  //       'Status', 
-  //       'Are you sure you want to delete this student?',
-  //       [
-  //         {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-  //         {text: 'OK', onPress: () => removeStudent(matricno)}
-  //       ],
-  //       { cancelable: false }
-  //       );
-  //   }
-
-
-
-  //const { uniqueId, jobname, jobdesc, worktype, salary, peoplenum, chosenDate, location } = this.props.navigation.getParam;
-
-  // const Job = this.props.navigation.getParam('job');
-
-  //const ApplicantID = this.props.uniqueId;
-  // const jobName = this.props.jobname;
-  // const JobDesc = this.props.jobdesc;
-  // const WorkType = this.props.worktype;
-  // const Salary = this.props.salary;
-  // const PeopleNum = this.props.peoplenum;
-  // const WorkDate = this.props.chosenDate;
-  // const WorkPlace = this.props.location;
   render() {
     return (
       <Container>
@@ -168,6 +250,10 @@ export default class MyOrderDetail extends Component {
         </Header>
 
         <Content padder>
+          <Card style={{ height: 300 }}>
+            <Image source={{ uri: this.state.url }} style={{ height: 300 }} />
+          </Card>
+
           <Card>
             <CardItem bordered header>
               <Text style={{ textAlign: "center", height: 40, fontWeight: "bold", marginTop: 20 }} >{this.state.jobname}</Text>
@@ -179,6 +265,7 @@ export default class MyOrderDetail extends Component {
 
             </CardItem>
           </Card>
+
           <Card>
             <CardItem bordered header>
 
@@ -230,57 +317,52 @@ export default class MyOrderDetail extends Component {
               </Body>
             </CardItem>
           </Card>
-          <Card style={{ height: 200 }}>
-            <CardItem header bordered>
-              <Text style={{ fontWeight: "bold" }}>Main image</Text>
-            </CardItem>
-            <CardItem cardBody>
-              <Body>
-                <Image source={this.state.url} />
-              </Body>
-            </CardItem>
-          </Card>
-          <Card style={{ height: 250 }}>
+
+          <Card style={{ height: 500 }}>
             <CardItem header bordered>
               <Text style={{ fontWeight: "bold" }}>LOCATION</Text>
             </CardItem>
             <CardItem header >
-              <Text style={{ fontWeight: "bold" }}>{this.state.location}</Text>
+              <Text style={{ fontWeight: "bold" }}>{this.state.location.description}</Text>
             </CardItem>
             <CardItem cardBody>
               <Container style={styles.container}>
 
                 <MapView
                   provider={PROVIDER_GOOGLE}
-                  ref={map => this._map = map}
+                  initialRegion={{
+                    latitude: this.state.lat,
+                    longitude: this.state.lng,
+                    latitudeDelta: 0,
+                    longitudeDelta: 0
+
+                  }}
+                  // onRegionChange={this.onRegionChange.bind(this)}
+                  // ref={map => this._map = map}
                   showsUserLocation={true}
                   liteMode={true}
                   style={styles.map}
+                  moveOnMarkerPress={false}
+                  userLocationPriority="low"
+                  followsUserLocation={true}
+                  showsMyLocationButton={true}
+
                 >
 
-
-
                   <Marker
-                    draggable
                     coordinate={{ latitude: this.state.lat, longitude: this.state.lng }}
                   >
 
                   </Marker>
-                  {/* {
-            this.state.coordinates.map((marker, index) => (
-              <Marker
-                key={marker.name}
-                ref={ref => this.state.markers[index] = ref}
-                onPress={() => this.onMarkerPressed(marker, index)}
-                coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
-              >
-                <Callout>
-                  <Text>{marker.name}</Text>
-                </Callout>
+                  {/* {this.state.dynamicAddress.map(marker => (
+                    <Marker
+                      key={marker.key}
+                      coordinate={marker.address}
+                      identifier={"Marker" + marker.key}
+                    />
+                  ))} */}
 
-                  </Marker>
-                   ))
-                  } */}
+
                 </MapView>
               </Container>
             </CardItem>
@@ -308,7 +390,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject
   },
   map: {
-    height: 200,
+    height: 400,
     // disabledwidth: 100,
     width: Dimensions.get('window').width,
     //...StyleSheet.absoluteFillObject

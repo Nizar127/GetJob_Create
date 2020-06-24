@@ -42,7 +42,7 @@ export default class MyJob extends Component {
   getCollection = (querySnapshot) => {
     const jobs = [];
     querySnapshot.forEach((res) => {
-      const { jobname, uniqueId, jobdesc, worktype, salary, peoplenum, chosenDate, time, location } = res.data();
+      const { jobname, uniqueId, jobdesc, worktype, salary, peoplenum, chosenDate, location } = res.data();
       jobs.push({
         key: res.id,
         res,
@@ -53,7 +53,6 @@ export default class MyJob extends Component {
         salary,
         peoplenum,
         chosenDate,
-        time,
         location
       });
     });
