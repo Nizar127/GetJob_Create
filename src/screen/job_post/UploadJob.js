@@ -374,7 +374,7 @@ export default class UploadJob extends Component {
 
                   query={{
                     // available options: https://developers.google.com/places/web-service/autocomplete
-                    key: 'AIzaSyDLllM - _bxchMqm1dqUIhwE54Z99EgEdqw',
+                    key: '',
                     language: 'en', // language of the results
                     types: 'geocode', // default: 'geocode'
                     components: 'country:my'
