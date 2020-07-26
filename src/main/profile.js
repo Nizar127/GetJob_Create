@@ -71,7 +71,9 @@ export default class Profile extends Component {
         this.state = {
             users: [],
             username: '',
+            key: '',
             phonenumber: '',
+            profileImage: '',
             keyplayer: '',
             uniqueId: '',
             jobdesc: '',
@@ -86,6 +88,7 @@ export default class Profile extends Component {
             lng: 0,
             location: '',
             show: true,
+            project: '',
             //listViewData: data,
             newContact: "",
             mytext: '',
@@ -130,13 +133,16 @@ export default class Profile extends Component {
     getCollection = (querySnapshot) => {
         const users = [];
         querySnapshot.forEach((res) => {
-            const { username, phonenumber, profileImage } = res.data();
+            const { username, phonenumber, profileImage, description, keyplayer, project } = res.data();
             users.push({
                 key: res.id,
                 res,
                 username,
                 phonenumber,
-                profileImage
+                profileImage,
+                description,
+                keyplayer,
+                project,
             });
         });
         this.setState({
@@ -212,161 +218,131 @@ export default class Profile extends Component {
 
     render() {
         return (
-            <ScrollView>
-                <Container>
+            this.state.users.map((item, index) => {
+                return (
+                    <View style={{ flex: 1 }} key={index}>
+                        <ScrollView>
+                            <Card>
+                                <CardItem cardBody>
+                                    <Image source={{ uri: auth().currentUser.photoURL }} style={{ height: 200, width: null, flex: 1 }} />
+
+                                </CardItem>
+                                <CardItem>
+                                    <Body>
+                                        <Text>{auth().currentUser.displayName}</Text>
+                                    </Body>
+                                </CardItem>
 
 
-                    <Content padder>
-                        <FlatList
-                            data={this.state.users}
-                            // keyExtractor={(item) => item.id.toString()}
-                            renderItem={({ item, index }) => {
-                                return (
-                                    <Container style={{ flex: 1 }}>
-                                        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                            </Card>
 
-
-                                            <Card key={index}>
-                                                <CardItem cardBody>
-                                                    <Image source={{ uri: item.profileImage }} style={{ height: 200, width: null, flex: 1 }} />
-
-                                                </CardItem>
-                                                <CardItem>
-                                                    <Body>
-                                                        <Text>{item.username}</Text>
-                                                    </Body>
-                                                </CardItem>
-
-
-                                            </Card>
-
-                                            <Card style={{ height: 50 }}>
-                                                <CardItem cardBody bordered button onPress={() => this.props.navigation.navigate('MyJob')}>
-                                                    <Text style={{ justifyContent: 'center' }}>Click Here to View Your Uploaded Job</Text>
-                                                </CardItem>
-                                            </Card>
+                            <Card style={{ height: 50 }}>
+                                <CardItem cardBody bordered button onPress={() => this.props.navigation.navigate('MyJob')}>
+                                    <Text style={{ justifyContent: 'center' }}>Click Here to View Your Uploaded Job</Text>
+                                </CardItem>
+                            </Card>
 
 
 
 
-                                            <Card style={{ height: 200 }}>
-                                                <CardItem header bordered>
-                                                    <Text>About Us</Text>
-                                                </CardItem>
-                                                <CardItem cardBody bordered button
-                                                    onPress={() => { this.setModalVisible(true); this.setInputText(item.text), this.setEditedItem(item.id) }}>
-                                                    <Body>
-                                                        <Text onPress={this.setText} style={{ margin: 30 }}>Click Here to Edit</Text>
-                                                        <Text>{item.myText}</Text>
+                            <Card style={{ height: 200 }}>
+                                <CardItem header bordered>
+                                    <Text>About Us</Text>
+                                </CardItem>
+                                <CardItem cardBody bordered button>
+                                    <Body>
+                                        <Text style={{ margin: 30 }}>{item.description}</Text>
 
-                                                    </Body>
-                                                </CardItem>
-                                            </Card>
-                                            <Card style={{ height: auto }}>
-                                                <CardItem header bordered>
+                                    </Body>
+                                </CardItem>
+                            </Card>
+                            <Card style={{ height: auto }}>
+                                <CardItem header bordered>
 
-                                                    <Text>Notable Project</Text>
-                                                </CardItem>
-                                                <CardItem cardBody>
-                                                    <Content>
-                                                        <Separator>
-                                                            <Text onPress={this.setText} value={item.myText}>Government</Text>
-                                                        </Separator>
-                                                        <ListItem>
-                                                            <Text>JKR</Text>
-                                                        </ListItem>
-                                                        <ListItem>
-                                                            <Text>Jabatan Hasil</Text>
-                                                        </ListItem>
-                                                        <ListItem>
-                                                            <Text>SPAD</Text>
-                                                        </ListItem>
-                                                        <ListItem>
-                                                            <Text>HASIL</Text>
-                                                        </ListItem>
-                                                        <Separator bordered>
-                                                            <Text>SME</Text>
-                                                        </Separator>
-                                                        <ListItem>
-                                                            <Text>Kinematics Business Management Firm</Text>
-                                                        </ListItem>
-                                                        <ListItem>
-                                                            <Text>Derren Consulting Firm</Text>
-                                                        </ListItem>
-                                                        <ListItem>
-                                                            <Text>GoRide</Text>
-                                                        </ListItem>
-                                                    </Content>
-                                                </CardItem>
-                                            </Card>
+                                    <Text>Notable Project</Text>
+                                </CardItem>
+                                <CardItem cardBody>
+                                    <Content>
+                                        <Separator>
+                                            <Text onPress={this.setText}>Government</Text>
+                                        </Separator>
+                                        <ListItem>
+                                            <Text>JKR</Text>
+                                        </ListItem>
+                                        <ListItem>
+                                            <Text>Jabatan Hasil</Text>
+                                        </ListItem>
+                                        <ListItem>
+                                            <Text>SPAD</Text>
+                                        </ListItem>
+                                        <ListItem>
+                                            <Text>HASIL</Text>
+                                        </ListItem>
+                                        <Separator bordered>
+                                            <Text>SME</Text>
+                                        </Separator>
+                                        <ListItem>
+                                            <Text>Kinematics Business Management Firm</Text>
+                                        </ListItem>
+                                        <ListItem>
+                                            <Text>Derren Consulting Firm</Text>
+                                        </ListItem>
+                                        <ListItem>
+                                            <Text>GoRide</Text>
+                                        </ListItem>
+                                    </Content>
+                                </CardItem>
+                            </Card>
 
-                                            <Card>
-                                                <CardItem header>
-                                                    <Text>Task List</Text>
-                                                </CardItem>
-                                                <CardItem cardBody button onPress={() => this.props.navigation.navigate('TaskList')}>
-                                                    <Text style={{ justifyContent: 'center' }}>View Task</Text>
-                                                </CardItem>
-                                            </Card>
-                                            <Card style={{ height: 250 }}>
-                                                <CardItem header bordered>
-                                                    <Text>Key Player</Text>
-                                                </CardItem>
-                                                <CardItem cardBody style={{ flex: 1, flexDirection: 'row', padding: 10, margin: 5, alignContent: 'space-around', justifyContent: 'space-between', alignItems: 'center', marginLeft: 5 }}>
-                                                    <ScrollView horizontal={true}>
+                            <Card>
+                                <CardItem header>
+                                    <Text>Task List</Text>
+                                </CardItem>
+                                <CardItem cardBody button onPress={() => this.props.navigation.navigate('TaskList')}>
+                                    <Text style={{ justifyContent: 'center' }}>View Task</Text>
+                                </CardItem>
+                            </Card>
+                            <Card style={{ height: 250 }}>
+                                <CardItem header bordered>
+                                    <Text>Key Player</Text>
+                                </CardItem>
+                                <CardItem cardBody style={{ flex: 1, flexDirection: 'row', padding: 10, margin: 5, alignContent: 'space-around', justifyContent: 'space-between', alignItems: 'center', marginLeft: 5 }}>
+                                    <ScrollView horizontal={true}>
 
-                                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
-                                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
-                                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
-                                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
-                                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
-                                                    </ScrollView>
+                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
+                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
+                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
+                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
+                                        <Thumbnail large source={require('../img/dude.jpg')} style={{ padding: 10 }} />
+                                    </ScrollView>
 
-                                                </CardItem>
-                                            </Card>
+                                </CardItem>
+                            </Card>
 
 
 
 
-                                            <Card>
+                            <Card>
 
-                                                <Button block danger last style={{ marginTop: 20, marginBottom: 20 }} onPress={this.logoff}>
-                                                    <Text>Sign Out</Text>
-                                                </Button>
-                                            </Card>
-                                        </ScrollView>
-                                    </Container>
+                                <Button block primary last style={{ marginTop: 20, marginBottom: 5 }} onPress={() => {
+                                    this.props.navigation.navigate('EditProfile', {
+                                        userkey: item.key
+                                    });
+                                }}>
+                                    <Text>Edit Profile</Text>
+                                </Button>
+                                <Button block danger last style={{ marginTop: 5, marginBottom: 5 }} onPress={this.logoff}>
+                                    <Text>Sign Out</Text>
+                                </Button>
+                            </Card>
 
-                                )
-                            }}
-                        />
-                        <Modal animationType="fade" visible={this.state.isModalVisible}
-                            onRequestClose={() => this.setModalVisible(false)}>
-                            <View style={styles.modalView}>
-                                <Text style={styles.text}>Change text:</Text>
-                                <TextInput
-                                    style={styles.textInput}
-                                    onChangeText={(text) => { this.setState({ inputText: text }); console.log('state ', this.state.inputText) }}
-                                    defaultValue={this.state.inputText}
-                                    editable={true}
-                                    multiline={false}
-                                    maxLength={200}
-                                />
-                                <TouchableHighlight onPress={() => { this.handleEditItem(this.state.editedItem); this.setModalVisible(false) }}
-                                    style={[styles.touchableHighlight, { backgroundColor: 'orange' }]} underlayColor={'#f1f1f1'}>
-                                    <Text style={styles.text}>Save</Text>
-                                </TouchableHighlight>
-                            </View>
-                        </Modal>
+                        </ScrollView>
 
-                    </Content>
+                    </View>
+                )
 
-                </Container>
-
-            </ScrollView>
-
-
-        );
+            })
+        )
     }
 }
 
