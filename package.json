@@ -18,7 +18,7 @@
     "@react-native-firebase/firestore": "^7.1.7",
     "@react-native-firebase/storage": "^6.7.1",
     "firebase": "^7.14.2",
-    "moment": "^2.25.1",
+    "moment": "^2.29.2",
     "native-base": "^2.13.12",
     "prop-types": "^15.7.2",
     "react": "16.11.0",
